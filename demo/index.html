@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Time Logarithmic Scale Chart - Demos</title>
+  <script src="https://d3js.org/d3.v4.js"></script>
+  <script src="../index.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      font-size: 0.95rem;
+      font-family: "Comfortaa", monospace;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header, footer, body > section {
+      width: 92%;
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    header {
+      margin-top: 33px;
+    }
+
+    body > section {
+      height: 200px;
+      border: 1px dashed lightgray;
+    }
+
+    h1 {
+      font-size: 1.7rem;
+      display: inline-block;
+      padding: 20px 40px;
+      border: 13px solid rgba(255, 255, 0, 0.33);
+    }
+
+    h2 {
+      line-height: 1px;
+      font-size: 1.1rem;
+      display: inline-block;
+      border-bottom: 13px solid rgba(255, 255, 0, 0.33);
+    }
+
+    a, a:visited {
+      color: blue;
+
+    }
+
+    a:hover {
+      color: deepskyblue;
+    }
+
+    footer {
+      font-size: 0.75rem;
+      margin-bottom: 15px;
+    }
+
+    @media all and (min-width: 900px) {
+      header, body > section {
+        width: 75%;
+      }
+    }
+
+    @media all and (min-width: 1600px) {
+      header, body > section {
+        width: 50%;
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Time Logarithmic Scale Chart Demos</h1>
+  <p>Using: d3.v4.js</p>
+  <a href="#">Documentation</a>
+</header>
+<h2>Sinusoid Data (15 minutes)</h2>
+<section id="chart-sinusoid"></section>
+<h2>Sinusoid Data (3 days)</h2>
+<section id="chart-sinusoid-3-days"></section>
+<h2>Page Scrolling Data</h2>
+<section id="chart-scroll"></section>
+<h2>Custom Theme</h2>
+<section id="chart-custom-theme"></section>
+<footer>
+  MIT License | 2017 | <a href="https://antonfisher.com/about/">Anton Fisher</a>
+</footer>
+<script>
+  var UPDATE_INTERVAL = 2 * 1000;
+
+  var createSinusoidDataGenerator = function () {
+    var TIME_FROM = 15.1  * 60 * 1000;
+    var now = +Date.now();
+    var data = [];
+    var addItem = function (time) {
+      data.push({
+        time: time,
+        value: (Math.sin((+time) / Math.PI / 1800) + 1) * 45 + 5
+      });
+    };
+    return {
+      generate: function () {
+        data = [];
+        for (var i = now - TIME_FROM; i < now; i += 1000) {
+          var time = new Date(i);
+          if (time.getSeconds() % 2 === 0) {
+            addItem(time);
+          }
+        }
+        return data;
+      },
+      add: function () {
+        data.shift();
+        addItem(new Date());
+        return data;
+      }
+    }
+  };
+
+  function generateSinusoid3DaysData() {
+    var DATA_COUNT = 100;
+    var DATA_FROM = 3.1 * 24 * 60 * 60 * 1000; // 3 days
+    return new Array(DATA_COUNT).fill('').map((v, i) => ({
+      time: new Date(Date.now() - DATA_FROM + i * (DATA_FROM / DATA_COUNT)),
+      value: ((Math.sin(i / 2) + 1) / 2) * 100
+    }));
+  }
+
+  var chartSinusoidDataGenerator = createSinusoidDataGenerator();
+  var chartSinusoidEl = document.getElementById('chart-sinusoid');
+  var chartSinusoidData = chartSinusoidDataGenerator.generate();
+  var chartSinusoid = new TimeLogarithmicScaleChart(chartSinusoidEl, chartSinusoidData, {minInterval: '20sec'});
+  setInterval(function () {
+    chartSinusoid.update(chartSinusoidDataGenerator.add());
+  }, UPDATE_INTERVAL);
+
+  new TimeLogarithmicScaleChart(document.getElementById('chart-scroll'), generateSinusoid3DaysData());
+  new TimeLogarithmicScaleChart(document.getElementById('chart-sinusoid-3-days'), generateSinusoid3DaysData());
+  new TimeLogarithmicScaleChart(document.getElementById('chart-custom-theme'), generateSinusoid3DaysData());
+</script>
+<link href="https://fonts.googleapis.com/css?family=Comfortaa" rel="stylesheet">
+</body>
+</html>
