@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="mobile-web-app-capable" content="yes">
   <title>Time Logarithmic Scale Chart - Demos</title>
-  <script src="https://d3js.org/d3.v4.js"></script>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="../index.js"></script>
   <style>
     html, body {
@@ -81,31 +81,31 @@
 <header>
   <h1>Time Logarithmic Scale Chart Demos</h1>
   <p>Using: d3.v4.js</p>
-  <a href="#">Documentation</a>
+  <a href="https://github.com/antonfisher/d3-time-logarithmic-scale-chart">Github</a>
 </header>
 <h2>Sinusoid Data (15 minutes)</h2>
 <section id="chart-sinusoid"></section>
-<h2>Sinusoid Data (3 days)</h2>
-<section id="chart-sinusoid-3-days"></section>
 <h2>Page Scrolling Data</h2>
 <section id="chart-scroll"></section>
-<h2>Custom Theme</h2>
-<section id="chart-custom-theme"></section>
+<h2>Sinusoid Data (3 days)</h2>
+<section id="chart-sinusoid-3-days"></section>
 <footer>
-  MIT License | 2017 | <a href="https://antonfisher.com/about/">Anton Fisher</a>
+  MIT License | 2017 | <a href="https://antonfisher.com">Anton Fisher</a>
 </footer>
 <script>
-  var UPDATE_INTERVAL = 2 * 1000;
+  var SCROLL_UPDATE_INTERVAL = 1 * 1000;
+  var SINUSOID_UPDATE_INTERVAL = 2 * 1000;
 
-  var createSinusoidDataGenerator = function () {
-    var TIME_FROM = 15.1  * 60 * 1000;
+  function createSinusoidDataGenerator() {
+    var TIME_FROM = 15.1 * 60 * 1000;
     var now = +Date.now();
     var data = [];
     var addItem = function (time) {
       data.push({
         time: time,
-        value: (Math.sin((+time) / Math.PI / 1800) + 1) * 45 + 5
+        value: (Math.sin((+time) / Math.PI / 1800) + 1) * 0.45 + 0.05
       });
+      return data;
     };
     return {
       generate: function () {
@@ -119,20 +119,9 @@
         return data;
       },
       add: function () {
-        data.shift();
-        addItem(new Date());
-        return data;
+        return addItem(new Date());
       }
     }
-  };
-
-  function generateSinusoid3DaysData() {
-    var DATA_COUNT = 100;
-    var DATA_FROM = 3.1 * 24 * 60 * 60 * 1000; // 3 days
-    return new Array(DATA_COUNT).fill('').map((v, i) => ({
-      time: new Date(Date.now() - DATA_FROM + i * (DATA_FROM / DATA_COUNT)),
-      value: ((Math.sin(i / 2) + 1) / 2) * 100
-    }));
   }
 
   var chartSinusoidDataGenerator = createSinusoidDataGenerator();
@@ -141,11 +130,68 @@
   var chartSinusoid = new TimeLogarithmicScaleChart(chartSinusoidEl, chartSinusoidData, {minInterval: '20sec'});
   setInterval(function () {
     chartSinusoid.update(chartSinusoidDataGenerator.add());
-  }, UPDATE_INTERVAL);
+  }, SINUSOID_UPDATE_INTERVAL);
 
-  new TimeLogarithmicScaleChart(document.getElementById('chart-scroll'), generateSinusoid3DaysData());
+
+  function createScrollDataGenerator() {
+    var data = [];
+    var scrollLength = 0;
+    var scrollLastValue = 0;
+
+    document.addEventListener('scroll', function () {
+      scrollLength += Math.abs(scrollLastValue - window.scrollY);
+      scrollLastValue = window.scrollY;
+    });
+
+    setInterval(function () {
+      data.push({time: Date.now(), value: scrollLength});
+      scrollLength = 0;
+    }, SCROLL_UPDATE_INTERVAL);
+
+    return {
+      init: function () {
+        data = [];
+        var DATA_TIME_OFFSET = 15.1 * 60 * 1000;
+        data.push({time: Date.now() - DATA_TIME_OFFSET, value: 0});
+        data.push({time: Date.now(), value: 0});
+        return data;
+      },
+      next: function () {
+        return data;
+      }
+    }
+  }
+
+  var chartScrollDataGenerator = createScrollDataGenerator();
+  var chartScrollEl = document.getElementById('chart-scroll');
+  var chartScrollData = chartScrollDataGenerator.init();
+  var chartScroll = new TimeLogarithmicScaleChart(chartScrollEl, chartScrollData, {
+    animation: false,
+    curve: d3.curveStepAfter,
+    minInterval: '20sec',
+    stroke: '#ff6666',
+    strokeWidth: 2,
+    yTickFormat: '.0f'
+  });
+  setInterval(function () {
+    chartScroll.update(chartScrollDataGenerator.next());
+  }, SCROLL_UPDATE_INTERVAL);
+
+
+  function generateSinusoid3DaysData() {
+    var DATA_COUNT = 100;
+    var DATA_TIME_OFFSET = 3.1 * 24 * 60 * 60 * 1000;
+    var data = [];
+    for (var i = 0; i < DATA_COUNT; i++) {
+      data.push({
+        time: new Date(Date.now() - DATA_TIME_OFFSET + i * (DATA_TIME_OFFSET / DATA_COUNT)),
+        value: ((Math.sin(i / 2) + 1) / 2)
+      });
+    }
+    return data;
+  }
+
   new TimeLogarithmicScaleChart(document.getElementById('chart-sinusoid-3-days'), generateSinusoid3DaysData());
-  new TimeLogarithmicScaleChart(document.getElementById('chart-custom-theme'), generateSinusoid3DaysData());
 </script>
 <link href="https://fonts.googleapis.com/css?family=Comfortaa" rel="stylesheet">
 </body>

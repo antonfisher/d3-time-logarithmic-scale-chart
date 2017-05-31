@@ -4,14 +4,20 @@
  * Using: d3.v4.js
  *
  * @author Anton Fisher <a.fschr@gmail.com>
+ * @link https://github.com/antonfisher/d3-time-logarithmic-scale-chart
  * @licence MIT
  */
 
-(function () {
+(function (window) {
   const DEFAULT_CONFIG = {
+    animation: true,
+    curve: d3.curveCardinal.tension(0.75),
     debug: false,
-    margin: 30,
-    minInterval: '1h'
+    margin: 40,
+    minInterval: '1h',
+    stroke: 'lightblue',
+    strokeWidth: 2,
+    yTickFormat: '.0%'
   };
 
   function createTickFn(period, offset) {
@@ -144,14 +150,14 @@
     _renderPath(data, dataScaleX, dataScaleY) {
       const firstRender = !this.path;
       const lineFn = d3.line()
-        .curve(d3.curveCardinal.tension(0.1))
+        .curve(this.config.curve)
         .x((d) => dataScaleX(d.time))
         .y((d) => dataScaleY(d.value));
 
       if (firstRender) {
         this.path = this.chartLayout.append('path')
-          .attr('stroke', 'lightblue')
-          .attr('stroke-width', 2)
+          .attr('stroke', this.config.stroke)
+          .attr('stroke-width', this.config.strokeWidth)
           .attr('fill', 'none');
 
         const lineFn0 = d3.line()
@@ -164,18 +170,24 @@
           .x((d) => +dataScaleX(d.time))
           .y(() => this.height / 2);
 
+        if (this.config.animation) {
+          this.path
+            .attr('d', lineFn0(data))
+            .transition()
+            .duration(500)
+            .attr('d', lineFn1(data))
+            .transition()
+            .duration(500)
+            .attr('d', lineFn(data));
+        } else {
+          this.path.attr('d', lineFn(data));
+        }
+      } else if (this.config.animation) {
         this.path
-          .attr('d', lineFn0(data))
           .transition()
-          .duration(1000)
-          .attr('d', lineFn1(data))
-          .transition()
-          .duration(1000)
           .attr('d', lineFn(data));
       } else {
-        this.path
-          .transition()
-          .attr('d', lineFn(data));
+        this.path.attr('d', lineFn(data));
       }
     }
 
@@ -270,14 +282,11 @@
 
       const yAxisTicks = d3.axisLeft(dataScaleY);
 
-      this._yAxisGroup.call(yAxisTicks);
+      this._yAxisGroup.call(yAxisTicks.tickFormat(d3.format(this.config.yTickFormat)));
       this._yAxisGridGroup.call(yAxisTicks.tickSize(-this.width).tickFormat(''));
     }
   }
 
-  if (window) {
-    window.TimeLogarithmicScaleChart = TimeLogarithmicScaleChart;
-  } else if (module) {
-    module.exports = TimeLogarithmicScaleChart;
-  }
-})();
+  //export
+  window.TimeLogarithmicScaleChart = TimeLogarithmicScaleChart;
+})(window);

@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "python -m SimpleHTTPServer",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel index.js -d dist"
   },
   "keywords": [
     "d3",
@@ -14,5 +15,9 @@
     "logarithmic"
   ],
   "author": "Anton Fisher <a.fschr@gmail.com> (http://antonfisher.com)",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "6.24.1",
+    "babel-preset-env": "1.5.1"
+  }
 }
