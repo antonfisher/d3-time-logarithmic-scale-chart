@@ -2,11 +2,13 @@
 
 Using d3.v4.js
 
-![Demo](https://raw.githubusercontent.com/antonfisher/d3-time-logarithmic-scale-chart/docs/images/demo-v1.gif)
+[![Demo](https://raw.githubusercontent.com/antonfisher/d3-time-logarithmic-scale-chart/docs/images/demo-v1.gif)](https://antonfisher.com/d3-time-logarithmic-scale-chart/)
+
+[Live demo](https://antonfisher.com/d3-time-logarithmic-scale-chart/)
 
 ## Usage
 
-Add library script on the page:
+Add the library script on the page:
 
 ```html
 <script src="https://d3js.org/d3.v4.min.js"></script>
@@ -18,13 +20,13 @@ Add chart container:
 <section id="chart" style="width: 500px; height: 250px"></section>
 ```
 
-Render chart:
+Render the chart:
 ```html
 const chartEl = document.getElementById('chart');
 new TimeLogarithmicScaleChart(chartEl, data);
 ```
 
-##API
+## API
 
 ```js
 // parent DOM Element
